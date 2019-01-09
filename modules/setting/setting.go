@@ -374,14 +374,15 @@ var (
 	}
 
 	// Picture settings
-	AvatarUploadPath      string
-	AvatarMaxWidth        int
-	AvatarMaxHeight       int
-	GravatarSource        string
-	GravatarSourceURL     *url.URL
-	DisableGravatar       bool
-	EnableFederatedAvatar bool
-	LibravatarService     *libravatar.Libravatar
+	AvatarUploadPath           string
+	RepositoryAvatarUploadPath string
+	AvatarMaxWidth             int
+	AvatarMaxHeight            int
+	GravatarSource             string
+	GravatarSourceURL          *url.URL
+	DisableGravatar            bool
+	EnableFederatedAvatar      bool
+	LibravatarService          *libravatar.Libravatar
 
 	// Log settings
 	LogLevel    string
@@ -1064,10 +1065,16 @@ func NewContext() {
 	}
 
 	sec = Cfg.Section("picture")
+
 	AvatarUploadPath = sec.Key("AVATAR_UPLOAD_PATH").MustString(path.Join(AppDataPath, "avatars"))
 	forcePathSeparator(AvatarUploadPath)
 	if !filepath.IsAbs(AvatarUploadPath) {
 		AvatarUploadPath = path.Join(AppWorkPath, AvatarUploadPath)
+	}
+	RepositoryAvatarUploadPath = sec.Key("REPOSITORY_AVATAR_UPLOAD_PATH").MustString(path.Join(AppDataPath, "repo-avatars"))
+	forcePathSeparator(RepositoryAvatarUploadPath)
+	if !filepath.IsAbs(RepositoryAvatarUploadPath) {
+		RepositoryAvatarUploadPath = path.Join(AppWorkPath, RepositoryAvatarUploadPath)
 	}
 	AvatarMaxWidth = sec.Key("AVATAR_MAX_WIDTH").MustInt(4096)
 	AvatarMaxHeight = sec.Key("AVATAR_MAX_HEIGHT").MustInt(3072)

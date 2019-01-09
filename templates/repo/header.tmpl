@@ -4,6 +4,7 @@
 		<div class="ui stackable grid header-grid">
 			<div class="seven wide column">
 				<div class="ui huge breadcrumb">
+					{{if .RelAvatarLink}}<img class="ui mini spaced image" src="{{.RelAvatarLink}}"/>{{end}}
 					<i class="mega-octicon octicon-{{if .IsPrivate}}lock{{else if .IsMirror}}repo-clone{{else if .IsFork}}repo-forked{{else}}repo{{end}}"></i>
 					<a href="{{AppSubUrl}}/{{.Owner.Name}}">{{.Owner.Name}}</a>
 					<div class="divider"> / </div>

@@ -83,6 +83,7 @@
 								<ul class="repo-owner-name-list">
 									<li v-for="repo in repos" :class="{'private': repo.private}" v-show="showRepo(repo, reposFilter)">
 										<a :href="suburl + '/' + repo.full_name">
+											{{if repo.RelAvatarLink}}<img class="ui mini spaced image" src="{{repo.RelAvatarLink}}"/>{{end}}
 											<i :class="repoClass(repo)"></i>
 											<strong class="text truncate item-name">${repo.full_name}</strong>
 											<span class="ui right text light grey">

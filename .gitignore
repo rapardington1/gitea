@@ -13,6 +13,9 @@ _test
 # MS VSCode
 .vscode
 
+# Mac
+.DS_Store
+
 # Architecture specific extensions/prefixes
 *.[568vq]
 [568vq].out
