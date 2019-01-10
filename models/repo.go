@@ -10,6 +10,9 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"image"
+	_ "image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -21,6 +24,7 @@ import (
 	"time"
 
 	"code.gitea.io/git"
+	"code.gitea.io/gitea/modules/avatar"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/markup"
 	"code.gitea.io/gitea/modules/options"
@@ -35,6 +39,7 @@ import (
 	"github.com/go-xorm/builder"
 	"github.com/go-xorm/xorm"
 	"github.com/mcuadros/go-version"
+	"github.com/nfnt/resize"
 	"gopkg.in/ini.v1"
 )
 
@@ -243,6 +248,61 @@ func (repo *Repository) FullName() string {
 // HTMLURL returns the repository HTML URL
 func (repo *Repository) HTMLURL() string {
 	return setting.AppURL + repo.FullName()
+}
+
+// CustomAvatarPath returns repository custom avatar file path.
+func (repo *Repository) CustomAvatarPath() string {
+	return filepath.Join(setting.RepositoryAvatarUploadPath, com.ToStr(repo.ID))
+}
+
+// RelAvatarLink returns relative avatar link to the site domain,
+// which includes app sub-url as prefix.
+// Since Gravatar support not needed here - just check for image path.
+func (repo *Repository) RelAvatarLink() string {
+	defaultImgUrl := ""
+	if !com.IsExist(repo.CustomAvatarPath()) {
+		return defaultImgUrl
+	}
+	return setting.AppSubURL + "/repo-avatars/" + com.ToStr(repo.ID)
+}
+
+// AvatarLink returns user avatar absolute link.
+func (repo *Repository) AvatarLink() string {
+	link := repo.RelAvatarLink()
+	if link[0] == '/' && link[1] != '/' {
+		return setting.AppURL + strings.TrimPrefix(link, setting.AppSubURL)[1:]
+	}
+	return link
+}
+
+// UploadAvatar saves custom avatar for repository.
+// FIXME: split uploads to different subdirs
+// in case we have massive number of repositories.
+func (repo *Repository) UploadAvatar(data []byte) error {
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("Decode: %v", err)
+	}
+
+	m := resize.Resize(avatar.AvatarSize, avatar.AvatarSize, img, resize.NearestNeighbor)
+	os.MkdirAll(setting.RepositoryAvatarUploadPath, os.ModePerm)
+	fw, err := os.Create(repo.CustomAvatarPath())
+	if err != nil {
+		return fmt.Errorf("Create: %v", err)
+	}
+	defer fw.Close()
+
+	if err = png.Encode(fw, m); err != nil {
+		return fmt.Errorf("Encode: %v", err)
+	}
+
+	return nil
+}
+
+// DeleteAvatar deletes the repository custom avatar.
+func (repo *Repository) DeleteAvatar() error {
+	log.Trace("DeleteAvatar [%d]: %s", repo.ID, repo.CustomAvatarPath())
+	return os.Remove(repo.CustomAvatarPath())
 }
 
 // APIURL returns the repository API URL
